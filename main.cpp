@@ -1,10 +1,13 @@
-#include <iostream>
 #include <string>
+#include <iostream>
 using namespace std;
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <thread>
+#include <chrono>
+#include <iomanip>
 
 class Media{
 public:
@@ -16,6 +19,11 @@ public:
     int year; ///year released
     string genre;
     string title;
+
+
+    // Default constructor
+    Media()
+            : keep_updating(true), type(""), points(0), rating(0.0), maturity(""), year(0), genre(""), title("") {}
 
     ///when initializing, have to check if the value is null
     Media(string type, double rating, string maturity, int year, string genre, string title){
@@ -39,6 +47,93 @@ public:
 
 };
 
+void merge(vector<Media>& media, int left, int mid, int right) {
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+
+    // Temporary vectors to hold the split sections
+    vector<Media> L(n1);
+    vector<Media> R(n2);
+
+    // Copying data to temporary vectors
+    for (int i = 0; i < n1; i++)
+        L[i] = media[left + i];
+    for (int j = 0; j < n2; j++)
+        R[j] = media[mid + 1 + j];
+
+    int i = 0, j = 0, k = left;
+    while (i < n1 && j < n2) {
+        if (L[i].points >= R[j].points) { // Sorting by points
+            media[k] = L[i];
+            i++;
+        } else {
+            media[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    // Copy remaining elements
+    while (i < n1) {
+        media[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        media[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+void mergeSort(vector<Media>& media, int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+        mergeSort(media, left, mid);
+        mergeSort(media, mid + 1, right);
+        merge(media, left, mid, right);
+    }
+}
+
+int partition(vector<Media>& media, int low, int high) {
+    int pivot = media[high].points;
+    int i = (low - 1);
+
+    for (int j = low; j <= high - 1; j++) {
+        if (media[j].points > pivot) { // Sort in descending order by points
+            i++;
+            swap(media[i], media[j]);
+        }
+    }
+    swap(media[i + 1], media[high]);
+    return (i + 1);
+}
+
+void quickSort(vector<Media>& media, int low, int high) {
+    if (low < high) {
+        int pi = partition(media, low, high);
+        quickSort(media, low, pi - 1);
+        quickSort(media, pi + 1, high);
+    }
+}
+////////////////////////
+
+//Loading bar attempt
+void displayLoadingBar(int progress, int total, int barWidth = 50) {
+    float ratio = static_cast<float>(progress) / total;
+    int filledWidth = static_cast<int>(barWidth * ratio);
+
+    cout << "\r[";
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < filledWidth) cout << "=";
+        else if (i == filledWidth) cout << ">";
+        else cout << " ";
+    }
+    cout << "] " << int(ratio * 100.0) << "%" << flush;
+}
+
+
 vector<string> split(const string& s, char delimiter) {
     vector<string> tokens;
     string token;
@@ -50,7 +145,7 @@ vector<string> split(const string& s, char delimiter) {
 }
 
 int main() {
-    string filePath = "C://Users//skodi//CLionProjects//Project3//Project3_xcel.csv";
+    string filePath = "/Users/a/Documents/GitHub/Project3/Project3_xcel.csv"; //C://Users//skodi//CLionProjects//Project3//Project3_xcel.csv";
     ifstream file(filePath); // Open the CSV file
     string line;
 
@@ -103,7 +198,7 @@ int main() {
 
     if (answer == "A"){
         type = "movie";
-        for (Media title : media){
+        for (Media& title : media){
             if (title.type == "tvSeries"){
                 title.NoMoreUpdate();
             }
@@ -112,7 +207,7 @@ int main() {
 
     if (answer == "B"){
         type = "show";
-        for (Media title : media){
+        for (Media& title : media){
             if (title.type == "movie"){
                 title.NoMoreUpdate();
             }
@@ -147,7 +242,7 @@ int main() {
 
     }
 
-    for (Media title : media){
+    for (Media& title : media){
         if (title.keep_updating == true && title.rating < value){
             title.NoMoreUpdate();
         }
@@ -166,7 +261,7 @@ int main() {
 
     if (answer == "A"){
         type2 = "scripted";
-        for (Media title : media){
+        for (Media& title : media){
             if (title.keep_updating == true && (title.genre == "Game-Show" || title.genre == "News" || title.genre == "Reality-TV" || title.genre == "Sport" || title.genre == "Talk-Show")){
                 title.NoMoreUpdate();
             }
@@ -175,7 +270,7 @@ int main() {
 
     if (answer == "B"){
         type2 = "nonscripted";
-        for (Media title : media){
+        for (Media& title : media){
             if (title.keep_updating == true && title.genre != "Game-Show" && title.genre != "News" && title.genre != "Reality-TV" && title.genre != "Sport" && title.genre != "Talk-Show"){
                 title.NoMoreUpdate();
             }
@@ -198,7 +293,7 @@ int main() {
         }
 
         if (answer == "A"){
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "PG" || title.maturity == "PG-13" || title.maturity == "R" || title.maturity == "NC-17"){
                         title.NoMoreUpdate();
@@ -208,7 +303,7 @@ int main() {
         }
 
         if (answer == "B"){
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "PG-13" || title.maturity == "R" || title.maturity == "NC-17"){
                         title.NoMoreUpdate();
@@ -218,7 +313,7 @@ int main() {
         }
 
         if (answer == "C"){
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "R" || title.maturity == "NC-17"){
                         title.NoMoreUpdate();
@@ -228,7 +323,7 @@ int main() {
         }
 
         if (answer == "D"){
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "NC-17"){
                         title.NoMoreUpdate();
@@ -253,7 +348,7 @@ int main() {
         }
 
         if (answer == "A"){
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "TV-Y7" || title.maturity == "TV-G" || title.maturity == "TV-PG" || title.maturity == "TV-14"|| title.maturity == "TV-MA"){
                         title.NoMoreUpdate();
@@ -262,7 +357,7 @@ int main() {
             }
         }
         if (answer == "B"){
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "TV-G" || title.maturity == "TV-PG" || title.maturity == "TV-14"|| title.maturity == "TV-MA"){
                         title.NoMoreUpdate();
@@ -271,7 +366,7 @@ int main() {
             }
         }
         if (answer == "C"){
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "TV-PG" || title.maturity == "TV-14"|| title.maturity == "TV-MA"){
                         title.NoMoreUpdate();
@@ -280,7 +375,7 @@ int main() {
             }
         }
         if (answer == "D"){
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "TV-14"|| title.maturity == "TV-MA"){
                         title.NoMoreUpdate();
@@ -289,7 +384,7 @@ int main() {
             }
         }
         if (answer == "E"){
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "TV-MA"){
                         title.NoMoreUpdate();
@@ -315,7 +410,7 @@ int main() {
         }
 
         if (answer == "A") {
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "G"){
                         title.AddPoints(10);
@@ -331,7 +426,7 @@ int main() {
         }
 
         if (answer == "B") {
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "PG"){
                         title.AddPoints(10);
@@ -347,7 +442,7 @@ int main() {
         }
 
         if (answer == "C") {
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "PG-13"){
                         title.AddPoints(10);
@@ -360,7 +455,7 @@ int main() {
         }
 
         if (answer == "D") {
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "R"){
                         title.AddPoints(10);
@@ -375,7 +470,7 @@ int main() {
             }
         }
         if (answer == "E") {
-            for (Media title : media){
+            for (Media& title : media){
                 if (title.keep_updating == true){
                     if (title.maturity == "NC-17"){
                         title.AddPoints(10);
@@ -409,7 +504,7 @@ int main() {
         }
 
         if (answer == "A") {
-            for (Media title: media) {
+            for (Media& title: media) {
                 if (title.keep_updating == true) {
                     if (title.maturity == "TV-Y"){
                         title.AddPoints(10);
@@ -424,7 +519,7 @@ int main() {
             }
         }
         if (answer == "B") {
-            for (Media title: media) {
+            for (Media& title: media) {
                 if (title.keep_updating == true) {
                     if (title.maturity == "TV-Y7"){
                         title.AddPoints(10);
@@ -439,7 +534,7 @@ int main() {
             }
         }
         if (answer == "C") {
-            for (Media title: media) {
+            for (Media& title: media) {
                 if (title.keep_updating == true) {
                     if (title.maturity == "TV-G"){
                         title.AddPoints(10);
@@ -454,7 +549,7 @@ int main() {
             }
         }
         if (answer == "D") {
-            for (Media title: media) {
+            for (Media& title: media) {
                 if (title.keep_updating == true) {
                     if (title.maturity == "TV-PG"){
                         title.AddPoints(10);
@@ -469,7 +564,7 @@ int main() {
             }
         }
         if (answer == "E") {
-            for (Media title: media) {
+            for (Media& title: media) {
                 if (title.keep_updating == true) {
                     if (title.maturity == "TV-14"){
                         title.AddPoints(10);
@@ -484,7 +579,7 @@ int main() {
             }
         }
         if (answer == "F") {
-            for (Media title: media) {
+            for (Media& title: media) {
                 if (title.keep_updating == true) {
                     if (title.maturity == "TV-MA"){
                         title.AddPoints(10);
@@ -517,7 +612,7 @@ int main() {
     }
 
     if (answer == "A"){
-        for (Media title : media){
+        for (Media& title : media){
             if (title.year < 1970){
                 title.AddPoints(10);
             }
@@ -528,7 +623,7 @@ int main() {
     }
 
     if (answer == "B"){
-        for (Media title : media){
+        for (Media& title : media){
             if (1969 < title.year && title.year < 1980){
                 title.AddPoints(10);
             }
@@ -539,7 +634,7 @@ int main() {
     }
 
     if (answer == "C"){
-        for (Media title : media){
+        for (Media& title : media){
             if (1979 < title.year && title.year < 1990){
                 title.AddPoints(10);
             }
@@ -550,7 +645,7 @@ int main() {
     }
 
     if (answer == "D"){
-        for (Media title : media){
+        for (Media& title : media){
             if (1989 < title.year && title.year < 2000){
                 title.AddPoints(10);
             }
@@ -561,7 +656,7 @@ int main() {
     }
 
     if (answer == "E"){
-        for (Media title : media){
+        for (Media& title : media){
             if (1999 < title.year && title.year < 2010){
                 title.AddPoints(10);
             }
@@ -572,7 +667,7 @@ int main() {
     }
 
     if (answer == "F"){
-        for (Media title : media){
+        for (Media& title : media){
             if (2009 < title.year && title.year < 2020){
                 title.AddPoints(10);
             }
@@ -583,7 +678,7 @@ int main() {
     }
 
     if (answer == "G"){
-        for (Media title : media){
+        for (Media& title : media){
             if (2019 < title.year){
                 title.AddPoints(10);
             }
@@ -607,7 +702,7 @@ int main() {
             cin >> answer;
         }
 
-        for (Media title  : media){
+        for (Media& title  : media){
             if (title.keep_updating == true){
                 if (answer == "A"){
                     if (title.genre == "Game-Show"){
@@ -650,17 +745,17 @@ int main() {
         cout << "G. Family" << endl;
         cout << "H. Mystery" << endl;
         cin >> answer;
-        while (answer != "A" && answer != "B" && answer != "C" && answer != "D" && answer != "E") {
+        while (answer != "A" && answer != "B" && answer != "C" && answer != "D" && answer != "E" && answer != "F" && answer != "G" && answer != "H") {
             cout << "Not a valid choice. You may either type A or B or C or D or E. Try again" << endl;
             cin >> answer;
         }
 
-        for (Media title: media) {
+        for (Media& title: media) {
             if (title.keep_updating == true) {
                 if (answer == "A") {
                     vector <string> genres = {"Biography", "Documentary", "Crime", "History", "War", "Western"};
                     if (find(genres.begin(), genres.end(), title.genre) != genres.end()) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                     cout << "Type your preferred genre in that category as displayed" << endl;
                     cin >> answer;
@@ -669,7 +764,7 @@ int main() {
                         cin >> answer;
                     }
                     if (title.genre == answer) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                 }
                 if (answer == "B") {
@@ -681,7 +776,7 @@ int main() {
                 if (answer == "C") {
                     vector <string> genres = {"Music","Musical"};
                     if (find(genres.begin(), genres.end(), title.genre) != genres.end()) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                     cout << "Type your preferred genre in that category as displayed." << endl;
                     cin >> answer;
@@ -690,13 +785,13 @@ int main() {
                         cin >> answer;
                     }
                     if (title.genre == answer) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                 }
                 if (answer == "D") {
                     vector <string> genres = {"Action", "Adventure", "Thriller", "Fantasy", "Horror", "Mystery", "Sci-Fi"};
                     if (find(genres.begin(), genres.end(), title.genre) != genres.end()) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                     cout << "Type your preferred genre in that category as displayed" << endl;
                     cin >> answer;
@@ -705,13 +800,13 @@ int main() {
                         cin >> answer;
                     }
                     if (title.genre == answer) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                 }
                 if (answer == "E") {
                     vector<string> genres = {"Romance", "Comedy"};
                     if (find(genres.begin(), genres.end(), title.genre) != genres.end()) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                     cout << "Type your preferred genre in that category as displayed" << endl;
                     cin >> answer;
@@ -720,25 +815,25 @@ int main() {
                         cin >> answer;
                     }
                     if (title.genre == answer) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                 }
                 if (answer == "F") {
                     vector <string> genres = {"Animation"};
                     if (find(genres.begin(), genres.end(), title.genre) != genres.end()) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                 }
                 if (answer == "G") {
                     vector <string> genres = {"Family"};
                     if (find(genres.begin(), genres.end(), title.genre) != genres.end()) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                 }
                 if (answer == "H") {
                     vector <string> genres = {"Mystery"};
                     if (find(genres.begin(), genres.end(), title.genre) != genres.end()) {
-                        title.AddPoints(5);
+                        title.AddPoints(15);
                     }
                 }
 
@@ -747,7 +842,81 @@ int main() {
     }
 
     ///add print functions here to display sorting
+    //author Alejandro
+    //08/04/24
+    // Clone the media vector for each sort to ensure they sort the same data
+    vector<Media> mediaForMergeSort = media;
+    vector<Media> mediaForQuickSort = media;
 
+    /*
+// Measure time for Merge Sort
+    auto startMerge = chrono::high_resolution_clock::now();
+    mergeSort(mediaForMergeSort, 0, mediaForMergeSort.size() - 1);
+    auto endMerge = chrono::high_resolution_clock::now();
+    auto durationMerge = chrono::duration_cast<chrono::milliseconds>(endMerge - startMerge).count();
+    cout << "Merge Sort Time: " << durationMerge << " ms" << endl;
+
+// Measure time for Quick Sort
+    auto startQuick = chrono::high_resolution_clock::now();
+    quickSort(mediaForQuickSort, 0, mediaForQuickSort.size() - 1);
+    auto endQuick = chrono::high_resolution_clock::now();
+    auto durationQuick = chrono::duration_cast<chrono::milliseconds>(endQuick - startQuick).count();
+    cout << "Quick Sort Time: " << durationQuick << " ms" << endl;
+*/
+
+// Measure time for Merge Sort
+    cout << "Sorting with Merge Sort..." << endl;
+    auto startMerge = chrono::high_resolution_clock::now();
+    mergeSort(mediaForMergeSort, 0, mediaForMergeSort.size() - 1);
+    auto endMerge = chrono::high_resolution_clock::now();
+    auto durationMerge = chrono::duration_cast<chrono::milliseconds>(endMerge - startMerge).count();
+
+// Simulate progress for visualization
+    for (int i = 0; i <= 100; ++i) {
+        displayLoadingBar(i, 100);
+        this_thread::sleep_for(chrono::milliseconds(durationMerge / 100));
+    }
+    cout << "\nMerge Sort Time: " << durationMerge << " ms" << endl;
+
+// Measure time for Quick Sort
+    cout << "\nSorting with Quick Sort..." << endl;
+    auto startQuick = chrono::high_resolution_clock::now();
+    quickSort(mediaForQuickSort, 0, mediaForQuickSort.size() - 1);
+    auto endQuick = chrono::high_resolution_clock::now();
+    auto durationQuick = chrono::duration_cast<chrono::milliseconds>(endQuick - startQuick).count();
+
+// Simulate progress for visualization
+    for (int i = 0; i <= 100; ++i) {
+        displayLoadingBar(i, 100);
+        this_thread::sleep_for(chrono::milliseconds(durationQuick / 100));
+    }
+    cout << "\nQuick Sort Time: " << durationQuick << " ms" << endl;
+
+// Display top 5 recommendations using Merge Sort results
+    cout << "Top 5 Recommendations (using Merge Sort results):" << endl;
+    int countb = 0;
+    for (const Media& title : mediaForMergeSort) {
+        if (title.keep_updating && countb < 5) {
+            cout << title.title << " (" << title.year << ") - "
+                 << title.genre << " - Rating: " << title.rating
+                 << " - Maturity: " << title.maturity << endl; // Added maturity rating
+            countb++;
+        }
+    }
+
+    cout << endl;
+
+// Display top 5 recommendations using Quick Sort results
+    cout << "Top 5 Recommendations (using Quick Sort results):" << endl;
+    int count = 0;
+    for (const Media& title : mediaForQuickSort) {
+        if (title.keep_updating && count < 5) {
+            cout << title.title << " (" << title.year << ") - "
+                 << title.genre << " - Rating: " << title.rating
+                 << " - Maturity: " << title.maturity << endl;
+            count++;
+        }
+    }
 
     return 0;
 }
