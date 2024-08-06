@@ -53,7 +53,9 @@ MovieNightConundrum.exe
 Follow the on-screen instructions to complete the quiz and get your recommendations. Here’s an example of how to interact with the program:
 
 ```
-Welcome to Movie Night Conundrum!
+--------------------------------------
+|       Movie Night Conundrum!       |
+--------------------------------------
 Please answer the following questions to get your movie/TV show recommendations.
 
 What type of media do you want to watch? Enter your letter choice.
