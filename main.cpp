@@ -670,7 +670,7 @@ int main() {
     cout << "Top Recommendations (using Merge Sort results):" << endl;
     for (int i = 0; i < 5; i++) {
         // cout << "(DEBUG) Points: " << title.points << " | "; // DEBUG: shows points before movie on printed list
-        cout << i + 1 << " | "
+        cout << "[" << i + 1 << "] "
             << mediaForMergeSort[i].title << " (" << mediaForMergeSort[i].yearString << ") - "
             << mediaForMergeSort[i].genre << " - Rating: " << mediaForMergeSort[i].rating
             << " - Maturity: " << mediaForMergeSort[i].maturity << endl; // Added maturity rating
@@ -682,7 +682,7 @@ int main() {
     cout << "Top Recommendations (using Quick Sort results):" << endl;
     for (int i = 0; i < 5; i++) {
         // cout << "(DEBUG) Points: " << title.points << " | "; // DEBUG: shows points before movie on printed list
-        cout << i + 1 << " | "
+        cout << "[" << i + 1 << "] "
             << mediaForQuickSort[i].title << " (" << mediaForQuickSort[i].yearString << ") - "
             << mediaForQuickSort[i].genre << " - Rating: " << mediaForQuickSort[i].rating
             << " - Maturity: " << mediaForQuickSort[i].maturity << endl; // Added maturity rating
