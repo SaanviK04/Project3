@@ -144,7 +144,7 @@ vector<string> split(const string& s, char delimiter) {
 }
 
 int main() {
-    string filePath = "Project3_xcel.csv"; //C://Users//skodi//CLionProjects//Project3//Project3_xcel.csv";
+    string filePath = "../Project3_xcel.csv"; //C://Users//skodi//CLionProjects//Project3//Project3_xcel.csv";
     ifstream file(filePath); // Open the CSV file
     string line;
 
