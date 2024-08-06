@@ -56,7 +56,7 @@ Follow the on-screen instructions to complete the quiz and get your recommendati
 --------------------------------------
 |       Movie Night Conundrum!       |
 --------------------------------------
-Please answer the following questions to get your movie/TV show recommendations.
+Let us help you decide what to watch tonight!
 
 What type of media do you want to watch? Enter your letter choice.
 A. Movie
