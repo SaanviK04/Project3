@@ -78,6 +78,5 @@ We welcome contributions to enhance the project. To contribute:
 
 ## Team
 
-- **[James Hall](https://github.com/jameSHIFT4)**
 - **[Saanvi Kodiganti](https://github.com/SaanviK04)**
 - **[Alejandro Fluitt Martinez](https://github.com/lilbigboy1)**
